@@ -3,15 +3,38 @@ import math
 import random
 
 BACKGROUND = arcade.color.ALMOND
+    
+def distance(p1,p2) : 
+    return math.sqrt( (p1.center_x - p2.center_x)**2 + (p1.center_y - p2.center_y)**2 )
+
+def contamination(personne_en_contacte, p_contamination) : 
+    for (p1, p2) in personne_en_contacte : 
+        if p1.etat == True and p2.etat == False : 
+            if random.random() < p_contamination : 
+                p2.etat = True
+        elif p2.etat == True and p1.etat == False : 
+            if random.random() < p_contamination : 
+                p1.etat = True
+
+#def test_contacte(liste_personnes, rayon_personne) : 
+#    personnes_en_contacte = []
+#    for i in range (len (liste_personnes)) : 
+#       for j in range (i+1, len (liste_personnes)) : 
+#           if distance (liste_personnes[i], liste_personnes[j]) < 2*rayon_personne : 
+#                personnes_en_contacte.append ( (liste_personnes[i], liste_personnes[j]) )
+#    return personnes_en_contacte 
+
+
 
 class Boid(arcade.SpriteCircle):
-    def __init__(self, position_x: float, position_y: float, angle: float, etat: bool = False, speed: float = 1.0):
+    def __init__(self, position_x: float, position_y: float, angle: float, liste_boids, etat: bool = False, speed: float = 1.0):
         super().__init__(5, arcade.color.BLUE, False)
         self.center_x = position_x
         self.center_y = position_y
         self.angle = angle
         self.speed = speed
         self.etat = etat
+        self.voisins = liste_boids
 
     def move(self):
        self.center_x += math.cos(self.angle_radian()) * self.speed
@@ -25,7 +48,14 @@ class Boid(arcade.SpriteCircle):
             self.angle = 180 - self.angle
         if self.center_y >= 795 or self.center_y <= 5 :
             self.angle = -self.angle
-        
+
+    def contact_boid(self):
+        rayon_personne = 5
+        for autre in self.voisins:
+            if autre is not self:  
+                if distance(self, autre) < 2 * rayon_personne:
+                    self.angle = -self.angle + 180
+                    break
 
 class Window(arcade.Window):
 
@@ -38,7 +68,7 @@ class Window(arcade.Window):
         self.boids =[]
         for k in range(N):
             x_pos, y_pos, ang = random.randint(5, 795),random.randint(5, 795),random.randint(0, 360)
-            self.boids.append(Boid(x_pos, y_pos, ang, False))
+            self.boids.append(Boid(x_pos, y_pos, ang, self.boids, False))
 
         self.sprites = arcade.SpriteList()
         for boid in self.boids:
@@ -52,29 +82,10 @@ class Window(arcade.Window):
         for boid in self.boids:
             boid.move()
             boid.contact_bord()
+            boid.contact_boid()
         self.sprites.update()
 
 window = Window()
 arcade.run()
 
 
-def distance (p1,p2) : 
-    return math.sqrt( (p1.center_x - p2.center_x)**2 + (p1.center_y - p2.center_y)**2 )
-
-
-def test_contacte (liste_personnes, rayon_personne) : 
-    personnes_en_contacte = []
-    for i in range (len (liste_personnes)) : 
-        for j in range (i+1, len (liste_personnes)) : 
-            if distance (liste_personnes[i], liste_personnes[j]) < 2*rayon_personne : 
-                personnes_en_contacte.append ( (liste_personnes[i], liste_personnes[j]) )
-    return personnes_en_contacte 
-
-def contamination (personne_en_contacte, p_contamination) : 
-    for (p1, p2) in personne_en_contacte : 
-        if p1.etat == True and p2.etat == False : 
-            if random.random() < p_contamination : 
-                p2.etat = True
-        elif p2.etat == True and p1.etat == False : 
-            if random.random() < p_contamination : 
-                p1.etat = True
