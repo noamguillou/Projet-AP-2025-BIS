@@ -1,0 +1,80 @@
+import arcade
+import math
+import random
+
+BACKGROUND = arcade.color.ALMOND
+
+class Boid(arcade.SpriteCircle):
+    def __init__(self, position_x: float, position_y: float, angle: float, etat: bool = False, speed: float = 1.0):
+        super().__init__(5, arcade.color.BLUE, False)
+        self.center_x = position_x
+        self.center_y = position_y
+        self.angle = angle
+        self.speed = speed
+        self.etat = etat
+
+    def move(self):
+       self.center_x += math.cos(self.angle_radian()) * self.speed
+       self.center_y += math.sin(self.angle_radian()) * self.speed
+
+    def angle_radian(self):
+        return self.angle / 180 * math.pi
+    
+    def contact_bord(self):
+        if self.center_x >= 795  or self.center_x <= 5 : 
+            self.angle = 180 - self.angle
+        if self.center_y >= 795 or self.center_y <= 5 :
+            self.angle = -self.angle
+        
+
+class Window(arcade.Window):
+
+    def __init__(self):
+        super().__init__(800, 800, "My first boid")
+        arcade.set_background_color(BACKGROUND)
+        self.set_location(800, 100)
+
+        N = 50  # Nombre de boids
+        self.boids =[]
+        for k in range(N):
+            x_pos, y_pos, ang = random.randint(5, 795),random.randint(5, 795),random.randint(0, 360)
+            self.boids.append(Boid(x_pos, y_pos, ang, False))
+
+        self.sprites = arcade.SpriteList()
+        for boid in self.boids:
+            self.sprites.append(boid)
+
+    def on_draw(self):
+        self.clear()
+        self.sprites.draw()
+
+    def on_update(self, delta_time):
+        for boid in self.boids:
+            boid.move()
+            boid.contact_bord()
+        self.sprites.update()
+
+window = Window()
+arcade.run()
+
+
+def distance (p1,p2) : 
+    return math.sqrt( (p1.center_x - p2.center_x)**2 + (p1.center_y - p2.center_y)**2 )
+
+
+def test_contacte (liste_personnes, rayon_personne) : 
+    personnes_en_contacte = []
+    for i in range (len (liste_personnes)) : 
+        for j in range (i+1, len (liste_personnes)) : 
+            if distance (liste_personnes[i], liste_personnes[j]) < 2*rayon_personne : 
+                personnes_en_contacte.append ( (liste_personnes[i], liste_personnes[j]) )
+    return personnes_en_contacte 
+
+def contamination (personne_en_contacte, p_contamination) : 
+    for (p1, p2) in personne_en_contacte : 
+        if p1.etat == True and p2.etat == False : 
+            if random.random() < p_contamination : 
+                p2.etat = True
+        elif p2.etat == True and p1.etat == False : 
+            if random.random() < p_contamination : 
+                p1.etat = True
