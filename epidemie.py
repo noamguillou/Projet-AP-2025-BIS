@@ -56,7 +56,12 @@ class Boid(arcade.SpriteCircle):
                 if distance(self, autre) < 2 * rayon_personne:
                     self.angle = -self.angle + 180
                     break
-
+    def contact(self, x, y):
+        return math.isclose(self.center_x,x) and math.isclose(self.center_y,y)
+    def proj(self, x,y) :# inspiré de l'hackaton
+        px = min(max(x, self.center_x), self.center_x )
+        py = min(max(y, self.center_y), self.center_y )
+        return px, py
 class Window(arcade.Window):
 
     def __init__(self):
@@ -84,6 +89,13 @@ class Window(arcade.Window):
             boid.contact_bord()
             boid.contact_boid()
         self.sprites.update()
+
+    def update_collision(self):
+        for g1 in self.boids: #probablement pas génial en complexité 
+            for g2 in self.boids:
+                if g1.collision(g1.self.center_x,g1.self.center_y, g2.self.center_x,g2.self.center_y):
+                   g1.self.center_x, g1.self.center_y = g2.proj(g1.self.center_x, g1.self.center_y)
+
 
 window = Window()
 arcade.run()
