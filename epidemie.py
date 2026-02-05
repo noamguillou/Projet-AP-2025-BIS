@@ -3,6 +3,7 @@ import math
 import random
 
 BACKGROUND = arcade.color.ALMOND
+PROBA_MALADIE = 0.1
 
 # Fonction pour calculer la distance entre deux boids
 def distance(p1,p2) : 
@@ -62,6 +63,10 @@ class Boid(arcade.SpriteCircle):
                 if distance(self, autre) < 2 * rayon_personne:
                     self.angle = -self.angle + 180
                     break
+    
+    def je_suis_malade(self):
+        if self.etat == True :
+            self.color = arcade.color.RED
 
     def contact(self, x, y):
         return math.isclose(self.center_x,x) and math.isclose(self.center_y,y)
@@ -79,11 +84,14 @@ class Window(arcade.Window):
         self.set_location(800, 100)
 
         # Initialisation de la liste des boids
-        N = 50  # Nombre de boids
+        N = 150  # Nombre de boids
         self.boids =[]
         for k in range(N):
             x_pos, y_pos, ang = random.randint(5, 795),random.randint(5, 795),random.randint(0, 360)
             self.boids.append(Boid(x_pos, y_pos, ang, self.boids, False))
+        for i in range(int(PROBA_MALADIE*len(self.boids))) :
+            k = random.randint(0, len(self.boids)-1)
+            self.boids[k].etat = True
 
         self.sprites = arcade.SpriteList()
         for boid in self.boids:
@@ -98,11 +106,12 @@ class Window(arcade.Window):
             boid.move()
             boid.contact_bord()
             boid.contact_boid()
+            boid.je_suis_malade()
         self.sprites.update()
 
     def update_collision(self):
         for g1 in self.boids: #probablement pas génial en complexité 
-            for g2 in self.boids:
+           for g2 in self.boids:
                 if g1.collision(g1.self.center_x,g1.self.center_y, g2.self.center_x,g2.self.center_y):
                    g1.self.center_x, g1.self.center_y = g2.proj(g1.self.center_x, g1.self.center_y)
 
