@@ -3,10 +3,12 @@ import math
 import random
 
 BACKGROUND = arcade.color.ALMOND
-    
+
+# Fonction pour calculer la distance entre deux boids
 def distance(p1,p2) : 
     return math.sqrt( (p1.center_x - p2.center_x)**2 + (p1.center_y - p2.center_y)**2 )
 
+# Fonction pour gérer la contamination entre les boids en contact
 def contamination(personne_en_contacte, p_contamination) : 
     for (p1, p2) in personne_en_contacte : 
         if p1.etat == True and p2.etat == False : 
@@ -36,19 +38,23 @@ class Boid(arcade.SpriteCircle):
         self.etat = etat
         self.voisins = liste_boids
 
+    # Fonction qui assure un déplacement rectiligne des boids
     def move(self):
        self.center_x += math.cos(self.angle_radian()) * self.speed
        self.center_y += math.sin(self.angle_radian()) * self.speed
 
+    # conversion de l'angle du boid en radians pour les fonctions trigonométriques
     def angle_radian(self):
         return self.angle / 180 * math.pi
     
+    # Fonction pour maintenir les boids à l'intérieur de la fenêtre
     def contact_bord(self):
         if self.center_x >= 795  or self.center_x <= 5 : 
             self.angle = 180 - self.angle
         if self.center_y >= 795 or self.center_y <= 5 :
             self.angle = -self.angle
 
+    # Fonction pour gérer les collisions entre les boids
     def contact_boid(self):
         rayon_personne = 5
         for autre in self.voisins:
@@ -56,12 +62,15 @@ class Boid(arcade.SpriteCircle):
                 if distance(self, autre) < 2 * rayon_personne:
                     self.angle = -self.angle + 180
                     break
+
     def contact(self, x, y):
         return math.isclose(self.center_x,x) and math.isclose(self.center_y,y)
+    
     def proj(self, x,y) :# inspiré de l'hackaton
         px = min(max(x, self.center_x), self.center_x )
         py = min(max(y, self.center_y), self.center_y )
         return px, py
+    
 class Window(arcade.Window):
 
     def __init__(self):
@@ -69,6 +78,7 @@ class Window(arcade.Window):
         arcade.set_background_color(BACKGROUND)
         self.set_location(800, 100)
 
+        # Initialisation de la liste des boids
         N = 50  # Nombre de boids
         self.boids =[]
         for k in range(N):
