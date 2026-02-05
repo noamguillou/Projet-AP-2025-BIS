@@ -62,7 +62,9 @@ class Boid(arcade.SpriteCircle):
             if autre is not self:  
                 if distance(self, autre) < 2 * rayon_personne:
                     self.angle = -self.angle + 180
-                    break
+                    self.center_x += math.cos(self.angle_radian()) * self.speed
+                    self.center_y += math.sin(self.angle_radian()) * self.speed
+                    break   
     #test pour vérifier si les personnes sont suffisamment proche pour se contaminer
     def test_proximité(self,p2):
         return distance(self,p2)<10
