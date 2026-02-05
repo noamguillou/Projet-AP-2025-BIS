@@ -64,6 +64,7 @@ class Boid(arcade.SpriteCircle):
                     self.angle = -self.angle + 180
                     break
     
+    # Fonction pour déterminer l'état de santé du patient
     def je_suis_malade(self):
         if self.etat == True :
             self.color = arcade.color.RED
