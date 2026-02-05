@@ -4,20 +4,20 @@ import random
 
 BACKGROUND = arcade.color.ALMOND
 PROBA_MALADIE = 0.1
-
+PROBA_CONTAMINATION=0.1
 # Fonction pour calculer la distance entre deux boids
 def distance(p1,p2) : 
     return math.sqrt( (p1.center_x - p2.center_x)**2 + (p1.center_y - p2.center_y)**2 )
 
 # Fonction pour gérer la contamination entre les boids en contact
 def contamination(personne_en_contacte, p_contamination) : 
-    for (p1, p2) in personne_en_contacte : 
-        if p1.etat == True and p2.etat == False : 
-            if random.random() < p_contamination : 
-                p2.etat = True
-        elif p2.etat == True and p1.etat == False : 
-            if random.random() < p_contamination : 
-                p1.etat = True
+    (p1,p2)= personne_en_contacte 
+    if p1.etat == True and p2.etat == False : 
+        if random.random() < p_contamination : 
+            p2.etat = True
+    elif p2.etat == True and p1.etat == False : 
+        if random.random() < p_contamination : 
+            p1.etat = True
 
 #def test_contacte(liste_personnes, rayon_personne) : 
 #    personnes_en_contacte = []
@@ -63,6 +63,9 @@ class Boid(arcade.SpriteCircle):
                 if distance(self, autre) < 2 * rayon_personne:
                     self.angle = -self.angle + 180
                     break
+    #test pour vérifier si les personnes sont suffisamment proche pour se contaminer
+    def test_proximité(self,p2):
+        return distance(self,p2)<10
     
     # Fonction pour déterminer l'état de santé du patient
     def je_suis_malade(self):
@@ -76,6 +79,14 @@ class Boid(arcade.SpriteCircle):
         px = min(max(x, self.center_x), self.center_x )
         py = min(max(y, self.center_y), self.center_y )
         return px, py
+    
+    def contact_malade(self):
+        rayon_personne = 5
+        for autre in self.voisins:
+            if autre is not self:  
+                if distance(self, autre) < 2 * rayon_personne:
+                    contamination((self,autre), PROBA_CONTAMINATION)
+                    break
     
 class Window(arcade.Window):
 
@@ -108,13 +119,9 @@ class Window(arcade.Window):
             boid.contact_bord()
             boid.contact_boid()
             boid.je_suis_malade()
+            boid.contact_malade()
         self.sprites.update()
 
-    def update_collision(self):
-        for g1 in self.boids: #probablement pas génial en complexité 
-           for g2 in self.boids:
-                if g1.collision(g1.self.center_x,g1.self.center_y, g2.self.center_x,g2.self.center_y):
-                   g1.self.center_x, g1.self.center_y = g2.proj(g1.self.center_x, g1.self.center_y)
 
 
 window = Window()
