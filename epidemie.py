@@ -136,7 +136,7 @@ class Window(arcade.Window):
     def on_update(self, delta_time):
         nb_sains = 0
         nb_malades = 0
-
+# dfvd
         for boid in self.boids:
             boid.move()
             boid.contact_bord()
