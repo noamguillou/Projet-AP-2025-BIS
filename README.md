@@ -8,13 +8,11 @@
 
     • barre_simulation.py est plus complexe. Nous avons ajouté des obstacles (batiments blancs générés aléatoirement) pour modifier davantage les trajectoires des boids et des carrés verts qui sont des zones de soins. Il y a également un curseur qui permet de suivre la proportion des populations malades et saines en direct.
 
-    • vaccination.py reprend le concept de barre_simulation en l'améliorant. Lorsqu'un boid malade atteint une zone de soin il reste bloqué quelques temps (le temps nécessaire pour se faire soigner), puis il quitte cette zone en étant vacciné donc immunisé contre la maladie. Il est alors de couleur verte. 
+    • vaccination.py et barre_simulation_temps_attente.py reprennent le concept de barre_simulation.py en l'améliorant. Lorsqu'un boid malade atteint une zone de soin il reste bloqué quelques temps (le temps nécessaire pour se faire soigner), puis il quitte cette zone en étant vacciné donc immunisé contre la maladie. Il est alors de couleur verte. Dans vaccination les zones de soin et de vaccination sont différenciées alors que dans barre_simulation_temps_attente une zone médicale permet de remplir les deux fonctionnalités. 
 
     • 
 
-
-
-
+    Ces programmes permettent d'avoir un premier aperçu de la contamination d'une maladie mais il reste encore beaucoup d'amélioration à faire pour approcher la réalité : immunité pendants quelques temps des agents qui viennent de guérir, plus fort taux de contaminations lors des premiers jours de la maladie, mode de contamination,... Malheureusement nous ne pouvons pas prendre toutes ces variables en compte, cela nous demanderait considérablement plus de travail. Il y une difficulté pratique qu'il faudrait résoudre cependant : le temps de guérison est fixé à 500 u.a. si bien qu'au bout de t = 500 il y a une chute très brutale et irréaliste du nombre de malades. 
 
 # Commentaires sur l'élaboration du code et l'utilisation de l'IA générative: #
 
