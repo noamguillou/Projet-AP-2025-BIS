@@ -1,4 +1,23 @@
-# Projet-AP-2025-BIS
+## Projet-AP-2025-BIS ##
+
+# Commentaires sur les programmes :
+
+    • Le premier programme à consiédrer est le pogramme de contamination le plus élémentaire, il s'agit du notebook epidemie_simple.py. Des agents se déplacent aléatoirement sur une carte, certains sont sains (bleus) et d'autres sont malades (rouges). Lors d'un contact entre une personne saine et un personne malade, il y a un risque de contamination selon une certaine probabilité PROBA_CONTAMINATION. Un graphique récapitule l'évolution des populations à la fermeture du programme. 
+
+    • confinement.py reprend la base du programme précédent. Mais cette fois deux murs ont été ajoutés pour limiter les déplacements des boids et ainsi simuler un confinement en haut à gauche de l'écran. Une autre différence est que les boids malades à l'instant initial sont tous dans la zone confinée et non plus répartis aléatoirement sur le cadre. On observe alors que la garnde majorité de la population malade reste dans le cadre prévu à cet effet, ce qui limite la propagation de l'épidémie.
+
+    • barre_simulation.py est plus complexe. Nous avons ajouté des obstacles (batiments blancs générés aléatoirement) pour modifier davantage les trajectoires des boids et des carrés verts qui sont des zones de soins. Il y a également un curseur qui permet de suivre la proportion des populations malades et saines en direct.
+
+    • vaccination.py reprend le concept de barre_simulation en l'améliorant. Lorsqu'un boid malade atteint une zone de soin il reste bloqué quelques temps (le temps nécessaire pour se faire soigner), puis il quitte cette zone en étant vacciné donc immunisé contre la maladie. Il est alors de couleur verte. 
+
+    • 
+
+
+
+
+
+# Commentaires sur l'élaboration du code et l'utilisation de l'IA générative: #
+
 Nous sommes repartis de la base du TP sur le mouvement de foule des Boids, d'où la strucuture avec deux classes (boid et window) et l'utilisation d'arcade pour la vidéo.
 Nous avons principalement tout codé à la main et l'IA sert juste à débugger quelques problèmes lorsque que nos fonctions ne marchent pas comme prévues.
 Gemini nous a notamment permis d'introduire la liste_boids dans la classe boid pour que chaque personne aie "conscience" de son entourage et qu'on puisse ensuite faire fonctionner la fonction contac_boid que nous avions coder auparavant. Mais cette fonction test_contacte (qui est commentée au début du code) était trop lourde en calcul, Gemini nous a donc lui même suggéré la version qu'on utilise maintenant.
