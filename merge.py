@@ -7,11 +7,11 @@ BACKGROUND = arcade.color.ALMOND
 PROBA_MALADIE = 0.1
 PROBA_CONTAMINATION = 0.1
 TEMPS_GUÉRISON = 500
-COULEUR_MUR = arcade.color.DARK_GRAY
+
 COULEUR_VACCINATION_VISUEL = arcade.color.LIME_GREEN
 COULEUR_guerison_VISUEL = arcade.color.BLUE 
 
-# probabimlité de guérison en fonction du temps d'attente
+# probabilité de guérison en fonction du temps d'attente
 def proba_gérison(temps_malade):
     return 1 - math.exp(-0.0001 * temps_malade) 
 
@@ -37,10 +37,9 @@ def contamination(personne_en_contacte, p_contamination) :
         if random.random() < p_contamination : 
             p1.etat = True
 
-
 # classe Boid qui représente une personne dans la simulation
 class Boid(arcade.SpriteCircle):
-    def __init__(self, position_x: float, position_y: float, angle: float, liste_boids, liste_murs, etat: bool = False, speed: float = 1.0, temps_malade: int = 0, temps_attente: int = 0, vaccine: bool = False):
+    def __init__(self, position_x: float, position_y: float, angle: float, liste_boids, etat: bool = False, speed: float = 1.0, temps_malade: int = 0, temps_attente: int = 0, vaccine: bool = False):
         super().__init__(5, arcade.color.BLUE, False)
         self.center_x = position_x
         self.center_y = position_y
@@ -48,7 +47,6 @@ class Boid(arcade.SpriteCircle):
         self.speed = speed
         self.etat = etat
         self.voisins = liste_boids
-        self.liste_murs = liste_murs 
         self.temps_malade = temps_malade
         self.vaccine = vaccine 
         self.temps_attente = temps_attente  
@@ -58,7 +56,7 @@ class Boid(arcade.SpriteCircle):
     def angle_radian(self):
         return self.angle / 180 * math.pi
 
-    # fonction de déplacement intelligent qui prend en compte les murs et les autres boids
+    # fonction de déplacement sans murs
     def deplacement_intelligent(self):
         if self.en_soin:
             return
@@ -67,26 +65,17 @@ class Boid(arcade.SpriteCircle):
         dy = math.sin(self.angle_radian()) * self.speed
 
         self.center_x += dx
-        if len(arcade.check_for_collision_with_list(self, self.liste_murs)) > 0:
-            self.center_x -= dx # Retour arrière
-            self.angle = 180 - self.angle # Rebond X
-            dx = math.cos(self.angle_radian()) * self.speed
-            dy = math.sin(self.angle_radian()) * self.speed
-
         self.center_y += dy
-        if len(arcade.check_for_collision_with_list(self, self.liste_murs)) > 0:
-            self.center_y -= dy 
-            self.angle = -self.angle 
-
         self.angle %= 360
     
-# fonction de contact avec les bords de la fenêtre
+    # fonction de contact avec les bords de la fenêtre
     def contact_bord(self):
         if self.center_x >= 795  or self.center_x <= 5 : 
             self.angle = 180 - self.angle
         if self.center_y >= 795 or self.center_y <= 5 :
             self.angle = -self.angle
-# fonction de contact avec les autres boids
+
+    # fonction de contact avec les autres boids
     def contact_boid(self):
         if self.en_soin:
             return
@@ -100,7 +89,8 @@ class Boid(arcade.SpriteCircle):
                     self.center_x += math.cos(self.angle_radian()) * self.speed
                     self.center_y += math.sin(self.angle_radian()) * self.speed
                     break
-# fonction pour gérer l'état de maladie d'un boid
+
+    # fonction pour gérer l'état de maladie d'un boid
     def je_suis_malade(self):
         if self.etat == True :
             self.color = arcade.color.RED
@@ -109,7 +99,7 @@ class Boid(arcade.SpriteCircle):
         if self.vaccine:
             self.color = arcade.color.GREEN
 
- # fonction pour gérer la guérison d'un boid   
+    # fonction pour gérer la guérison d'un boid   
     def je_suis_guéri(self):
         if self.temps_malade >= TEMPS_GUÉRISON :
             self.etat = False
@@ -119,7 +109,7 @@ class Boid(arcade.SpriteCircle):
         if self.vaccine:
             self.color = arcade.color.GREEN
         
-# fonction de contact avec les boids malades pour gérer la contamination
+    # fonction de contact avec les boids malades pour gérer la contamination
     def contact_malade(self):
         rayon_personne = 5
         for autre in self.voisins:
@@ -132,7 +122,7 @@ class Boid(arcade.SpriteCircle):
                     contamination((self,autre), PROBA_CONTAMINATION)
                     break
 
-# fonction de contact avec les zones de vaccination pour gérer la vaccination et les soins
+    # fonction de contact avec les zones de guérison
     def contact_guerison(self, liste_zones_guerison):
         en_zone = len(arcade.check_for_collision_with_list(self, liste_zones_guerison)) > 0
         
@@ -147,26 +137,23 @@ class Boid(arcade.SpriteCircle):
                 self.temps_attente = 0
                 self.en_soin = False           
                 
-        
         if not en_zone:
             self.en_soin = False
             self.temps_attente = 0
 
-
-    def contact_vaccination(self, liste_zones_vaccination): # Vaccination des individus pour les protéger de la maladie
+    # Vaccination des individus
+    def contact_vaccination(self, liste_zones_vaccination): 
         if len(arcade.check_for_collision_with_list(self, liste_zones_vaccination)) > 0:
             self.vaccine = True      
             self.etat= False 
             self.temps_malade = 0   
             self.color = arcade.color.GREEN 
-            
-
 
 # affichage 
 class Window(arcade.Window):
 
     def __init__(self):
-        super().__init__(800, 800, "Simulation Épidémie avec Murs")
+        super().__init__(800, 800, "Simulation Épidémie")
         arcade.set_background_color(BACKGROUND)
         self.set_location(800, 100)
         self.historique_sains = []
@@ -174,23 +161,10 @@ class Window(arcade.Window):
         self.historique_vaccines = []
         self.temps = 0
 
-        # Murs
-        self.liste_murs = arcade.SpriteList()
-        for _ in range(10):
-            w = random.randint(50, 200)
-            h = random.randint(50, 200)
-            x = random.randint(w//2 + 10, 800-w//2 - 10)
-            y = random.randint(h// 2 + 10, 800-h//2 - 10)
-            mur = arcade.SpriteSolidColor(w, h, COULEUR_MUR)
-            mur.center_x = x
-            mur.center_y = y
-            self.liste_murs.append(mur)
-
-# Zones de guérison 
+        # Zones de guérison 
         self.liste_guerison = arcade.SpriteList()
         nb_zones_placees = 0
         
-        # On boucle tant qu'on n'a pas placé 3 zones
         while nb_zones_placees < 3:
             w = 50
             h = 60
@@ -200,43 +174,13 @@ class Window(arcade.Window):
             zone = arcade.SpriteSolidColor(w, h, arcade.color.TRANSPARENT_BLACK)            
             zone.center_x = x
             zone.center_y = y
-            
-            # Si ça ne touche pas un mur, on l'ajoute
-            if len(arcade.check_for_collision_with_list(zone, self.liste_murs)) == 0:
-                self.liste_guerison.append(zone)
-                nb_zones_placees += 1 
+            self.liste_guerison.append(zone)
+            nb_zones_placees += 1 
 
-        # Boids
-        N = 150 
-        self.boids =[]
-        for k in range(N):
-            placed = False
-            while not placed:
-                x_pos, y_pos = random.randint(5, 795), random.randint(5, 795)
-                ang = random.randint(0, 360)
-                nouveau_boid = Boid(x_pos, y_pos, ang, self.boids, self.liste_murs, False, temps_malade=0)
-                if len(arcade.check_for_collision_with_list(nouveau_boid, self.liste_murs)) == 0:
-                    self.boids.append(nouveau_boid)
-                    placed = True
-                
-        # Patients zéros
-        for i in range(int(PROBA_MALADIE*len(self.boids))) :
-            k = random.randint(0, len(self.boids)-1)
-            self.boids[k].etat = True
-
-        self.sprites = arcade.SpriteList()
-        for boid in self.boids:
-            self.sprites.append(boid)
-
-
-
-
-#Mise en place de zone de vaccination 
+        # Mise en place de zone de vaccination 
         self.liste_vaccination = arcade.SpriteList()
         nb_zones_placees_vaccination = 0
-
         
-        # On boucle TANT QU'ON n'a pas placé 3 zones
         while nb_zones_placees_vaccination < 3:
             w = 50
             h = 60
@@ -246,19 +190,26 @@ class Window(arcade.Window):
             zone = arcade.SpriteSolidColor(w, h, arcade.color.TRANSPARENT_BLACK)            
             zone.center_x = x
             zone.center_y = y
-            
-            # Si ça ne touche pas un mur, on l'ajoute
-            if len(arcade.check_for_collision_with_list(zone, self.liste_murs)) == 0:
-                self.liste_vaccination.append(zone)
-                nb_zones_placees_vaccination += 1 # On compte +1 seulement si c'est réussi
+            self.liste_vaccination.append(zone)
+            nb_zones_placees_vaccination += 1 
 
+        # Boids (Plus de murs, placement direct)
+        N = 150 
+        self.boids =[]
+        for k in range(N):
+            x_pos, y_pos = random.randint(5, 795), random.randint(5, 795)
+            ang = random.randint(0, 360)
+            nouveau_boid = Boid(x_pos, y_pos, ang, self.boids, False, speed=1.0, temps_malade=0)
+            self.boids.append(nouveau_boid)
+                
+        # Patients zéros
+        for i in range(int(PROBA_MALADIE*len(self.boids))) :
+            k = random.randint(0, len(self.boids)-1)
+            self.boids[k].etat = True
 
-
-
-
-
-
-
+        self.sprites = arcade.SpriteList()
+        for boid in self.boids:
+            self.sprites.append(boid)
     
     def on_update(self, delta_time):
         nb_sains = 0
@@ -267,7 +218,6 @@ class Window(arcade.Window):
 
         for boid in self.boids:
             boid.deplacement_intelligent()
-            
             boid.contact_bord()
             boid.contact_boid()
             boid.je_suis_malade()
@@ -276,7 +226,6 @@ class Window(arcade.Window):
             boid.contact_guerison(self.liste_guerison)
             boid.contact_vaccination(self.liste_vaccination)
 
-            
             if boid.etat == True:
                 nb_malades += 1
             else:
@@ -293,12 +242,10 @@ class Window(arcade.Window):
 
     def on_draw(self):
             self.clear()
-            self.liste_murs.draw()
 
             nb_sains = self.historique_sains[-1]
             nb_malades = self.historique_malades[-1]
             nb_vaccines = self.historique_vaccines[-1]
-
 
             ratio = nb_malades/(nb_sains + nb_malades)
 
@@ -307,57 +254,38 @@ class Window(arcade.Window):
                 droite = zone.center_x + (zone.width / 2)
                 haut   = zone.center_y + (zone.height / 2)
                 bas    = zone.center_y - (zone.height / 2)
-            
                 
-          
                 arcade.draw_line(gauche, haut, droite, haut, COULEUR_guerison_VISUEL, 2)
-  
                 arcade.draw_line(gauche, bas, droite, bas, COULEUR_guerison_VISUEL, 2)
-
                 arcade.draw_line(gauche, bas, gauche, haut, COULEUR_guerison_VISUEL, 2)
-    
                 arcade.draw_line(droite, bas, droite, haut, COULEUR_guerison_VISUEL, 2)
 
             for zone in self.liste_vaccination:
-                # 1. On calcule les coins
                 gauche = zone.center_x - (zone.width / 2)
                 droite = zone.center_x + (zone.width / 2)
                 haut   = zone.center_y + (zone.height / 2)
                 bas    = zone.center_y - (zone.height / 2)
                 
-                # 2. On dessine les 4 traits (Haut, Bas, Gauche, Droite)
-                # draw_line(x_début, y_début, x_fin, y_fin, couleur, épaisseur)
-                
-                # Trait du haut
                 arcade.draw_line(gauche, haut, droite, haut, COULEUR_VACCINATION_VISUEL, 2)
-                # Trait du bas
                 arcade.draw_line(gauche, bas, droite, bas, COULEUR_VACCINATION_VISUEL, 2)
-                # Trait de gauche
                 arcade.draw_line(gauche, bas, gauche, haut, COULEUR_VACCINATION_VISUEL, 2)
-                # Trait de droite
                 arcade.draw_line(droite, bas, droite, haut, COULEUR_VACCINATION_VISUEL, 2)
-
-
-
-
-
 
             self.barre_width = 100
             self.barre_height= 10
             arcade.draw_lbwh_rectangle_filled(0, 5, self.barre_width, self.barre_height, color = (0,255, 0))
             arcade.draw_lbwh_rectangle_filled(0  ,5, self.barre_width * ratio, self.barre_height, color = (255,0,0))
 
-
-
             self.sprites.draw()
+
 window = Window()
 arcade.run()
-
 
 plt.figure(figsize=(10, 6))
 plt.plot(window.historique_malades, label="Malades", color='red', linewidth=2)
 plt.plot(window.historique_sains, label="Sains", color='blue', linewidth=2)
-plt.plot(window.historique_vaccinés, label="Vaccinés", color='green', linewidth=2)
+# J'ai retiré l'accent ici pour que Matplotlib fonctionne correctement !
+plt.plot(window.historique_vaccines, label="Vaccinés", color='green', linewidth=2)
 plt.title("Évolution de l'épidémie au sein de la population")
 plt.xlabel("Temps")
 plt.ylabel("Nombre d'individus")
