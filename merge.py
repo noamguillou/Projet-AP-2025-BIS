@@ -148,6 +148,19 @@ class Boid(arcade.SpriteCircle):
             self.etat= False 
             self.temps_malade = 0   
             self.color = arcade.color.GREEN 
+    
+    # Fonction pour gérer les collisions avec les murs de confinement
+    def contact_confinement(self):
+        # Mur vertical
+        if 390 <= self.center_x <= 410 and 425 <= self.center_y <= 775:
+            self.angle = 180 - self.angle
+            self.center_x += math.cos(self.angle_radian()) * self.speed
+            self.center_y += math.sin(self.angle_radian()) * self.speed
+        # Mur horizontal
+        if 25 <= self.center_x <= 375 and 390 <= self.center_y <= 410:
+            self.angle = -self.angle
+            self.center_x += math.cos(self.angle_radian()) * self.speed
+            self.center_y += math.sin(self.angle_radian()) * self.speed
 
 # affichage 
 class Window(arcade.Window):
@@ -193,19 +206,27 @@ class Window(arcade.Window):
             self.liste_vaccination.append(zone)
             nb_zones_placees_vaccination += 1 
 
-        # Boids (Plus de murs, placement direct)
-        N = 150 
+        # Initialisation de la liste des boids
+        N = 150  # Nombre de boids
         self.boids =[]
-        for k in range(N):
-            x_pos, y_pos = random.randint(5, 795), random.randint(5, 795)
+        possibilites_1 = list(range(5, 390)) + list(range(410, 795))
+        possibilites_2 = list(range(5, 25)) + list(range(410, 795))
+        for k in range(N-int(PROBA_MALADIE*len(self.boids))):
             ang = random.randint(0, 360)
-            nouveau_boid = Boid(x_pos, y_pos, ang, self.boids, False, speed=1.0, temps_malade=0)
-            self.boids.append(nouveau_boid)
-                
-        # Patients zéros
+            x_pos = random.randint(5,795)
+            y_pos = random.randint(5,795)
+            if 390 <= x_pos <= 410 and 425 <= y_pos <= 775: # Si on tombe dans le mur vertical
+                x_pos = random.choice(possibilites_1)
+            if 25 <= x_pos <= 375 and 390 <= y_pos <= 410: # Si on tombe dans le mur horizontal
+                y_pos = random.choice(possibilites_2)
+            self.boids.append(Boid(x_pos, y_pos, ang, self.boids, False, temps_malade=0))
+
+        # Iniatialisation de l'état de maladie de certains boids : "les patients zéros"
         for i in range(int(PROBA_MALADIE*len(self.boids))) :
-            k = random.randint(0, len(self.boids)-1)
-            self.boids[k].etat = True
+            ang = random.randint(0, 360)
+            x_pos = random.randint(5,390)
+            y_pos = random.randint(410,795)
+            self.boids.append(Boid(x_pos, y_pos, ang, self.boids, True, temps_malade=0))
 
         self.sprites = arcade.SpriteList()
         for boid in self.boids:
@@ -225,6 +246,7 @@ class Window(arcade.Window):
             boid.je_suis_guéri()
             boid.contact_guerison(self.liste_guerison)
             boid.contact_vaccination(self.liste_vaccination)
+            boid.contact_confinement()
 
             if boid.etat == True:
                 nb_malades += 1
@@ -242,7 +264,8 @@ class Window(arcade.Window):
 
     def on_draw(self):
             self.clear()
-
+            arcade.draw_rect_filled(arcade.Rect(395, 405, 430, 770, 10, 340, 400, 600), arcade.color.GRAY) # Mur vertical
+            arcade.draw_rect_filled(arcade.Rect(30, 370, 395, 405, 340, 10, 200, 400), arcade.color.GRAY) # Mur horizontal
             nb_sains = self.historique_sains[-1]
             nb_malades = self.historique_malades[-1]
             nb_vaccines = self.historique_vaccines[-1]
@@ -254,6 +277,7 @@ class Window(arcade.Window):
                 droite = zone.center_x + (zone.width / 2)
                 haut   = zone.center_y + (zone.height / 2)
                 bas    = zone.center_y - (zone.height / 2)
+                
                 
                 arcade.draw_line(gauche, haut, droite, haut, COULEUR_guerison_VISUEL, 2)
                 arcade.draw_line(gauche, bas, droite, bas, COULEUR_guerison_VISUEL, 2)

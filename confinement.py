@@ -104,6 +104,7 @@ class Boid(arcade.SpriteCircle):
                     contamination((self,autre), PROBA_CONTAMINATION)
                     break
     
+    # Fonction pour gérer les collisions avec les murs de confinement
     def contact_confinement(self):
         # Mur vertical
         if 390 <= self.center_x <= 410 and 425 <= self.center_y <= 775:
