@@ -112,9 +112,10 @@ class Boid(arcade.SpriteCircle):
             if self.color != arcade.color.GREEN:
                 self.color = arcade.color.BLUE # On reprend sa couleur normale
             
-    def vaccination(self, liste_zones_vaccination):
+    def vaccination(self, liste_zones_vaccination): # Vaccination des individus pour les protéger de la maladie
         if len(arcade.check_for_collision_with_list(self, liste_zones_vaccination)) > 0:
             self.vacciné = True       # On devient vacciné
+            self.etat= False # On peut considérer qu'ils ne sont pas malades
             self.temps_malade = 0   # On remet le compteur à 0
             self.color = arcade.color.GREEN # On prend une autre couleur pour dire qu'on est protégé
 class Window(arcade.Window):
@@ -140,7 +141,7 @@ class Window(arcade.Window):
             mur.center_y = y
             self.liste_murs.append(mur)
 
-# Zones de vaccination -> plutôt guérison
+# Zones de guérison
         self.liste_guérison = arcade.SpriteList()
         nb_zones_placees = 0
         
@@ -303,6 +304,7 @@ arcade.run()
 plt.figure(figsize=(10, 6))
 plt.plot(window.historique_malades, label="Malades", color='red', linewidth=2)
 plt.plot(window.historique_sains, label="Sains", color='blue', linewidth=2)
+plt.plot(window.historique_vaccinés, label="Vaccinés", color='green', linewidth=2)
 plt.title("Évolution de l'épidémie au sein de la population")
 plt.xlabel("Temps")
 plt.ylabel("Nombre d'individus")
