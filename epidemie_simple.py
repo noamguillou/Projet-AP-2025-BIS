@@ -169,4 +169,3 @@ plt.ylabel("Nombre d'individus")
 plt.grid(True, linestyle='--', alpha=0.7)
 plt.legend()
 plt.show()
-
